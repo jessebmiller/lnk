@@ -9,11 +9,13 @@ rsyncopts = "-az --exclude .{}".format(remotefile)
 def path_to_remotefile():
     """ walk up the directrory tree looking for the remotefile """
     path = os.path.join(os.path.abspath('.'), remotefile)
-    while path != '/' and not os.path.exists(path):
-        path = os.path.abspath(os.path.join(path, '..', remotefile))
+    while path != "/{}".format(remotefile) and not os.path.exists(path):
+        path = os.path.abspath(os.path.join(path, '..', '..', remotefile))
+    if not os.path.exists(path):
+        raise NameError("no linked path found")
     return path
 
-def set(remote):
+def _set(remote):
     """
     links this folder to a remote one
 
@@ -46,11 +48,15 @@ def put():
 def main(args):
     cmd = args[0]
     if cmd == 'set':
-        set(args[1])
+        _set(args[1])
+    elif cmd == 'unset':
+        do("rm {}".format(path_to_remotefile()))
     elif cmd == 'get':
         get()
     elif cmd == 'put':
         put()
+    elif cmd == 'where':
+        do("cat {}".format(path_to_remotefile()))
     else:
         print 'usage: snc <cmd> [loc]'
 
