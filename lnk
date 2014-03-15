@@ -3,7 +3,7 @@
 from os import system as do
 import sys, os
 
-remotefile = '.sncremote'
+remotefile = '.lnkremote'
 rsyncopts = "-az --exclude .{}".format(remotefile)
 
 def path_to_remotefile():
@@ -37,8 +37,10 @@ def put():
     path = path_to_remotefile()
     script = "rsync {} {}/ `cat {}`".format(
         rsyncopts, os.path.dirname(path), path)
-    print script
-    do(script)
+    if do(script) == 0:
+        do('echo "Put everything in `cat {}`"'.format(path))
+    else:
+        do('Something went wrong putting everything in `cat {}`"'.format(path))
 
 
 def main(args):
