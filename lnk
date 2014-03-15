@@ -1,0 +1,56 @@
+#! /usr/bin/python
+
+from os import system as do
+import sys, os
+
+remotefile = '.sncremote'
+rsyncopts = "-az --exclude .{}".format(remotefile)
+
+def path_to_remotefile():
+    """ walk up the directrory tree looking for the remotefile """
+    path = os.path.join(os.path.abspath('.'), remotefile)
+    while path != '/' and not os.path.exists(path):
+        path = os.path.abspath(os.path.join(path, '..', remotefile))
+    return path
+
+def set(remote):
+    """
+    links this folder to a remote one
+
+    stores the remote path that is linked in a hidden file
+    that will be ignored when putting the local contents there
+    or getting the contents from there.
+    """
+
+    do("echo '{}' > {}".format(remote, remotefile))
+
+def get():
+    """ get the remote contents """
+    path = path_to_remotefile()
+    script = "rsync {} `cat {}`/ {}".format(
+        rsyncopts, path, os.path.dirname(path))
+    print script
+    do(script)
+
+def put():
+    """ put the local contents in the remote """
+    path = path_to_remotefile()
+    script = "rsync {} {}/ `cat {}`".format(
+        rsyncopts, os.path.dirname(path), path)
+    print script
+    do(script)
+
+
+def main(args):
+    cmd = args[0]
+    if cmd == 'set':
+        set(args[1])
+    elif cmd == 'get':
+        get()
+    elif cmd == 'put':
+        put()
+    else:
+        print 'usage: snc <cmd> [loc]'
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
